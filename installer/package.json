@@ -1,0 +1,21 @@
+{
+  "name": "kanyelang-installer",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "pkg --public -t node18-win-x64 -o dist/kanyelang-installer.exe ./install.js"
+  },
+  "bin": "install.js",
+  "pkg": {
+    "scripts": "install.js",
+    "assets": [],
+    "options": {
+      "experimental": [
+        "ESM"
+      ]
+    }
+  },
+  "dependencies": {
+    "pkg": "^5.8.1"
+  }
+}

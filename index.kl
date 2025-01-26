@@ -1,17 +1,9 @@
 yeezy {
-    spit "Hey";
-    spit "I will show u my lang\n";
+    bleached hi be 10;
 
-    bleached var be ". hi";
-    bleached iter be 1;
+    spit hi;
 
-    repeat 10 times {
-        spit iter + var; 
+    change hi to hi - 5;
 
-        bleached iter be iter + 1;
-    }
-
-    spit "\nits end";
-    spit "Oh, and i want to show u tabs";
-    spit "\tline with \ttabs";
+    spit hi;
 }
