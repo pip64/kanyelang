@@ -67,6 +67,8 @@ class Interpreter {
         switch (op) {
             case '+':
                 return left + right;
+            case '-':
+                return left - right;
             default:
                 throw new Error(`Unsupported operator: ${op}`);
         }

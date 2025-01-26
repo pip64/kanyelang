@@ -52,10 +52,10 @@ function lex(input) {
             continue;
         }
 
-        const symbols = ['+', '{', '}', ';'];
+        const symbols = ['+', '-', '{', '}', ';'];
         for (const sym of symbols) {
             if (input.startsWith(sym, pos)) {
-                tokens.push({ type: sym === '+' ? 'operator' : sym, value: sym });
+                tokens.push({ type: ['+', '-'].includes(sym) ? 'operator' : sym, value: sym });
                 pos += sym.length;
                 match = true;
                 break;
