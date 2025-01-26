@@ -13,13 +13,26 @@ const flags = {
 
 async function updateKanyeLang() {
     const updateUrl = 'https://github.com/pip64/kanyelang/raw/refs/heads/main/dist/kanyelang.exe';
-    const installPath = path.join('C:', 'Program Files', 'KanyeLang');
+    const installDir = path.join('C:', 'Program Files', 'KanyeLang');
+    const installPath = path.join(installDir, 'kanye.exe');
     
     console.log('Updating KanyeLang...\n');
     
     try {
+        // Проверка прав администратора
+        if (!await checkAdmin()) {
+            throw new Error('Please run as administrator to update');
+        }
+
+        // Создание директории если её нет
+        if (!fs.existsSync(installDir)) {
+            fs.mkdirSync(installDir, { recursive: true });
+        }
+
+        // Скачивание с индикатором прогресса
         await downloadFileWithProgress(updateUrl, installPath);
         
+        // Проверка размера файла
         const stats = fs.statSync(installPath);
         if (stats.size === 0) {
             throw new Error('Downloaded file is empty');
@@ -30,6 +43,18 @@ async function updateKanyeLang() {
     } catch (error) {
         console.error('\n✗ Update failed:', error.message);
         process.exit(1);
+    }
+}
+
+async function checkAdmin() {
+    try {
+        const result = require('child_process').execSync(
+            `powershell -Command "(New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)"`,
+            { encoding: 'utf-8' }
+        );
+        return result.trim() === 'True';
+    } catch {
+        return false;
     }
 }
 
