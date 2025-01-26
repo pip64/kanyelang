@@ -52,10 +52,11 @@ function lex(input) {
             continue;
         }
 
-        const symbols = ['+', '-', '{', '}', ';'];
+        const math_operators = ['+', '-', '/', '*', '^']
+        const symbols = [...math_operators, '{', '}', ';'];
         for (const sym of symbols) {
             if (input.startsWith(sym, pos)) {
-                tokens.push({ type: ['+', '-'].includes(sym) ? 'operator' : sym, value: sym });
+                tokens.push({ type: math_operators.includes(sym) ? 'operator' : sym, value: sym });
                 pos += sym.length;
                 match = true;
                 break;
