@@ -23,6 +23,13 @@ class Interpreter {
                 this.env[stmt.name] = this.evalExpr(stmt.value);
                 break;
 
+            case 'VarChange':
+                if (this.strict && !this.env[stmt.name]) {
+                    throw new Error(`Undefined variable in strict mode: ${stmt.name}`);
+                }
+                this.env[stmt.name] = this.evalExpr(stmt.value);
+                break;
+
             case 'Spit':
                 console.log(this.evalExpr(stmt.expr));
                 break;
