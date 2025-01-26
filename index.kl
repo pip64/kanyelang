@@ -1,9 +1,9 @@
 yeezy {
-    bleached hi be 10;
+    bleached count be 1;
 
-    spit hi;
+    repeat 1000000 times {
+        spit count;
 
-    change hi to hi - 5;
-
-    spit hi;
+        aldi count to count + 1;
+    }
 }

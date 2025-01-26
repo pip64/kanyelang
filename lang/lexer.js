@@ -29,7 +29,7 @@ function lex(input) {
             continue;
         }
 
-        if ((match = input.slice(pos).match(/^(yeezy|bleached|change|spit|repeat|times|be|to)\b/))) {
+        if ((match = input.slice(pos).match(/^(yeezy|bleached|aldi|spit|repeat|times|be|to)\b/))) {
             tokens.push({ type: 'keyword', value: match[0] });
             pos += match[0].length;
             continue;

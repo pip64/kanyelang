@@ -36,7 +36,7 @@ class Parser {
         const token = this.peek();
         switch (token.value) {
             case 'bleached': return this.parseVarDecl();
-            case 'change': return this.parseVarChange();
+            case 'aldi': return this.parseVarChange();
             case 'spit': return this.parseSpit();
             case 'repeat': return this.parseRepeat();
             default: throw new Error(`Unexpected statement: ${token.value}`);
@@ -53,7 +53,7 @@ class Parser {
     }
 
     parseVarChange() {
-        this.consume('keyword', 'change');
+        this.consume('keyword', 'aldi');
         const name = this.consume('identifier').value;
         this.consume('keyword', 'to');
         const value = this.parseExpr();

@@ -1,4 +1,7 @@
 const os = require('os');
+const https = require('https');
+const fs = require('fs');
+const path = require('path');
 const config = require('./config');
 
 const flags = {
@@ -7,6 +10,80 @@ const flags = {
     strictMode: false,
     evalCode: null
 };
+
+async function updateKanyeLang() {
+    const updateUrl = 'https://github.com/pip64/kanyelang/raw/refs/heads/main/dist/kanyelang.exe';
+    const installPath = path.join('C:', 'Program Files', 'KanyeLang');
+    
+    console.log('Updating KanyeLang...\n');
+    
+    try {
+        await downloadFileWithProgress(updateUrl, installPath);
+        
+        const stats = fs.statSync(installPath);
+        if (stats.size === 0) {
+            throw new Error('Downloaded file is empty');
+        }
+        
+        console.log('\n✓ Update completed successfully');
+        console.log(`New version installed at: ${installPath}`);
+    } catch (error) {
+        console.error('\n✗ Update failed:', error.message);
+        process.exit(1);
+    }
+}
+
+function downloadFileWithProgress(url, outputPath) {
+    return new Promise((resolve, reject) => {
+        const file = fs.createWriteStream(outputPath);
+        let receivedBytes = 0;
+        let totalBytes = 0;
+        let lastProgress = -1;
+
+        https.get(url, response => {
+            if (response.statusCode === 302 || response.statusCode === 301) {
+                return downloadFileWithProgress(response.headers.location, outputPath)
+                    .then(resolve)
+                    .catch(reject);
+            }
+
+            if (response.statusCode !== 200) {
+                return reject(new Error(`HTTP error: ${response.statusCode}`));
+            }
+
+            totalBytes = parseInt(response.headers['content-length'], 10);
+            
+            response.on('data', chunk => {
+                receivedBytes += chunk.length;
+                const progress = Math.round((receivedBytes / totalBytes) * 100);
+                
+                if (progress !== lastProgress) {
+                    lastProgress = progress;
+                    updateProgressBar(progress);
+                }
+            });
+
+            response.pipe(file);
+
+            file.on('finish', () => {
+                file.close(resolve);
+            });
+
+        }).on('error', error => {
+            fs.unlinkSync(outputPath);
+            reject(new Error(`Download failed: ${error.message}`));
+        });
+    });
+}
+
+function updateProgressBar(percentage) {
+    const barLength = 20;
+    const filled = Math.round(barLength * (percentage / 100));
+    const empty = barLength - filled;
+    
+    const progressBar = `[${'='.repeat(filled)}${' '.repeat(empty)}]`;
+    process.stdout.write(`\r${progressBar} ${percentage.toFixed(1)}%`);
+}
 
 const argHandlers = {
     '--info': () => {
@@ -32,6 +109,7 @@ Options:
   --ast        Show parsed AST
   --strict     Enable strict mode
   --eval <code> Run code directly
+  --update     Update KanyeLang to latest version
   --help       Show this help`);
         process.exit(0);
     },
@@ -39,7 +117,11 @@ Options:
     '--tokens': () => flags.showTokens = true,
     '--ast': () => flags.showAST = true,
     '--strict': () => flags.strictMode = true,
-    '--eval': (code) => flags.evalCode = code
+    '--eval': (code) => flags.evalCode = code,
+    '--update': async () => {
+        await updateKanyeLang();
+        process.exit(0);
+    }
 };
 
 function parseArgs(args) {
