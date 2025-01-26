@@ -1,0 +1,27 @@
+{
+  "name": "kanyelang",
+  "version": "1.0.0",
+  "main": "index.js",
+  "bin": "index.js",
+  "scripts": {
+    "build": "pkg . --targets node18-win-x64 --out-path dist/",
+    "build-all": "pkg . --targets host --out-path dist/"
+  },
+  "pkg": {
+    "assets": [
+      "lang/**/*",
+      "cli/**/*"
+    ],
+    "scripts": [
+      "lang/lexer.js",
+      "lang/parser.js",
+      "lang/interpreter.js"
+    ]
+  },
+  "dependencies": {
+    "os": "^0.1.2"
+  },
+  "devDependencies": {
+    "pkg": "^5.8.1"
+  }
+}
