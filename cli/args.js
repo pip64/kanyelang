@@ -65,6 +65,11 @@ function downloadFileWithProgress(url, outputPath) {
         let totalBytes = 0;
         let lastProgress = -1;
 
+        file.on('error', error => {
+            fs.unlinkSync(outputPath); // Удаляем файл в случае ошибки
+            reject(new Error(`File write error: ${error.message}`));
+        });
+
         https.get(url, response => {
             if (response.statusCode === 302 || response.statusCode === 301) {
                 return downloadFileWithProgress(response.headers.location, outputPath)
@@ -95,7 +100,7 @@ function downloadFileWithProgress(url, outputPath) {
             });
 
         }).on('error', error => {
-            fs.unlinkSync(outputPath);
+            fs.unlinkSync(outputPath); // Удаляем файл в случае ошибки
             reject(new Error(`Download failed: ${error.message}`));
         });
     });
