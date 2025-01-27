@@ -40,10 +40,23 @@ class Interpreter {
                     this.evalBlock(stmt.body);
                 }
                 break;
-
+            case 'IfStatement':
+                const conditionResult = this.evalExpr(stmt.condition);
+                if (this.isTruthy(conditionResult)) {
+                    this.evalBlock(stmt.thenBlock);
+                } else if (stmt.elseBlock.length > 0) {
+                    this.evalBlock(stmt.elseBlock);
+                }
+                break;
             default:
                 throw new Error(`Unknown statement: ${stmt.type}`);
         }
+    }
+
+    isTruthy(value) {
+        if (typeof value === 'number') return value !== 0;
+        if (typeof value === 'string') return value !== '';
+        return !!value;
     }
 
     evalExpr(expr) {
@@ -72,16 +85,17 @@ class Interpreter {
 
     applyOperator(op, left, right) {
         switch (op) {
-            case '+':
-                return left + right;
-            case '-':
-                return left - right;
-            case '/':
-                return left / right;
-            case '*':
-                return left * right;
-            case '^':
-                return left ^ right;
+            case '+': return left + right;
+            case '-': return left - right;
+            case '/': return left / right;
+            case '*': return left * right;
+            case '^': return left ^ right;
+            case '==': return left == right ? 1 : 0;
+            case '!=': return left != right ? 1 : 0;
+            case '>': return left > right ? 1 : 0;
+            case '<': return left < right ? 1 : 0;
+            case '>=': return left >= right ? 1 : 0;
+            case '<=': return left <= right ? 1 : 0;
             default:
                 throw new Error(`Unsupported operator: ${op}`);
         }

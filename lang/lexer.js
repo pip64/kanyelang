@@ -29,7 +29,7 @@ function lex(input) {
             continue;
         }
 
-        if ((match = input.slice(pos).match(/^(yeezy|bleached|aldi|spit|repeat|times|be|to)\b/))) {
+        if ((match = input.slice(pos).match(/^(yeezy|bleached|aldi|spit|repeat|times|be|to|drip|nah)\b/))) {
             tokens.push({ type: 'keyword', value: match[0] });
             pos += match[0].length;
             continue;
@@ -57,8 +57,14 @@ function lex(input) {
             continue;
         }
 
-        const math_operators = ['+', '-', '/', '*', '^']
-        const symbols = [...math_operators, '{', '}', ';'];
+        if ((match = input.slice(pos).match(/^(>=|<=|==|!=)/))) {
+            tokens.push({ type: 'operator', value: match[0] });
+            pos += match[0].length;
+            continue;
+        }
+
+        const math_operators = ['+', '-', '/', '*', '^', '>', '<'];
+        const symbols = [...math_operators, '{', '}', ';', '(', ')'];
         for (const sym of symbols) {
             if (input.startsWith(sym, pos)) {
                 tokens.push({ type: math_operators.includes(sym) ? 'operator' : sym, value: sym });

@@ -39,6 +39,7 @@ class Parser {
             case 'aldi': return this.parseVarChange();
             case 'spit': return this.parseSpit();
             case 'repeat': return this.parseRepeat();
+            case 'drip': return this.parseIfStatement();
             default: throw new Error(`Unexpected statement: ${token.value}`);
         }
     }
@@ -50,6 +51,24 @@ class Parser {
         const value = this.parseExpr();
         this.consume(';');
         return { type: 'VarDecl', name, value };
+    }
+
+    parseIfStatement() {
+        this.consume('keyword', 'drip');
+        this.consume('(');
+        const condition = this.parseExpr();
+        this.consume(')');
+        this.consume('{');
+        const thenBlock = this.parseBlock();
+        this.consume('}');
+        let elseBlock = [];
+        if (this.peek()?.value === 'nah') {
+            this.consume('keyword', 'nah');
+            this.consume('{');
+            elseBlock = this.parseBlock();
+            this.consume('}');
+        }
+        return { type: 'IfStatement', condition, thenBlock, elseBlock };
     }
 
     parseVarChange() {

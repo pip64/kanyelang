@@ -1,9 +1,17 @@
 yeezy {
-    bleached count be 1;
+    bleached count be 0;
 
-    repeat 1000000 times {
-        spit count;
+    # repeat 10 times {
+    #     spit count;
+    # 
+    #     aldi count to count + 1;
+    # }
 
+    repeat 10 times {
         aldi count to count + 1;
+
+        drip (count >= 3) {
+            spit count;
+        } nah { spit "no"; }
     }
 }
