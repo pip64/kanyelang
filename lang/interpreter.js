@@ -39,8 +39,19 @@ class Interpreter {
 
             case 'Repeat':
                 const count = this.evalExpr(stmt.count);
+                const iterator = stmt.iterator;
                 for (let i = 0; i < count; i++) {
+                    const loopEnv = {
+                        __functions__: this.env.__functions__,
+                        __parent__: this.env
+                    };
+                    if (iterator !== null) {
+                        loopEnv[iterator] = i;
+                    }
+                    const prevEnv = this.env;
+                    this.env = loopEnv;
                     this.evalBlock(stmt.body);
+                    this.env = prevEnv;
                 }
                 break;
 
@@ -77,6 +88,9 @@ class Interpreter {
             case 'Number':
                 return expr.value;
 
+            case 'Boolean':
+                return expr.value;
+
             case 'Var':
                 if (this.strict && !(expr.name in this.env)) {
                     throw new Error(`Undefined variable in strict mode: ${expr.name}`);
@@ -92,22 +106,18 @@ class Interpreter {
                 const func = this.env.__functions__[expr.name];
                 if (!func) throw new Error(`Undefined function: ${expr.name}`);
 
-                // Создаем новое окружение
                 const localEnv = {
                     __functions__: this.env.__functions__,
                     __parent__: this.env
                 };
 
-                // Передаем аргументы
                 for (let i = 0; i < func.params.length; i++) {
                     localEnv[func.params[i]] = this.evalExpr(expr.args[i]);
                 }
 
-                // Сохраняем предыдущее окружение
                 const prevEnv = this.env;
                 this.env = localEnv;
 
-                // Выполняем тело функции
                 let result = null;
                 try {
                     this.evalBlock(func.body);
@@ -115,7 +125,6 @@ class Interpreter {
                     if (ret.type === 'return') result = ret.value;
                 }
 
-                // Восстанавливаем окружение
                 this.env = prevEnv;
                 return result;
 

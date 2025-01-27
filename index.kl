@@ -1,12 +1,5 @@
 yeezy {
-    flex factorial(n) {
-        drip (n == 0) {
-            bounce 1;
-        } nah {
-            bounce n * factorial(n - 1);
-        }
+    repeat 3 times be i {
+        spit i + 1;
     }
-
-    bleached result be factorial(5);
-    spit result;
 }

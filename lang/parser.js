@@ -75,10 +75,48 @@ class Parser {
         this.consume('keyword', 'repeat');
         const count = this.parseExpr();
         this.consume('keyword', 'times');
+        let iterator = null;
+        if (this.peek().value === 'be') {
+            this.consume('keyword', 'be');
+            iterator = this.consume('identifier').value;
+        }
         this.consume('{');
         const body = this.parseBlock();
         this.consume('}');
-        return { type: 'Repeat', count, body };
+        return { type: 'Repeat', count, body, iterator };
+    }
+
+    parsePrimary() {
+        const token = this.peek();
+        if (token.type === 'identifier' && this.tokens[this.pos + 1]?.type === '(') {
+            return this.parseCallExpr();
+        }
+
+        switch (token.type) {
+            case 'string':
+                this.consume('string');
+                return { type: 'String', value: token.value };
+            case 'number':
+                this.consume('number');
+                return { type: 'Number', value: token.value };
+            case 'keyword':
+                if (token.value === 'true' || token.value === 'false') {
+                    const value = token.value === 'true';
+                    this.consume('keyword');
+                    return { type: 'Boolean', value };
+                }
+                throw new Error(`Unexpected keyword in expression: ${token.value}`);
+            case 'identifier':
+                this.consume('identifier');
+                return { type: 'Var', name: token.value };
+            case '(':
+                this.consume('(');
+                const expr = this.parseExpr();
+                this.consume(')');
+                return expr;
+            default:
+                throw new Error(`Unexpected primary: ${token.type}`);
+        }
     }
 
     parseIfStatement() {
@@ -137,7 +175,7 @@ class Parser {
         if (token.type === 'identifier' && this.tokens[this.pos + 1]?.type === '(') {
             return this.parseCallExpr();
         }
-        
+
         switch (token.type) {
             case 'string':
                 this.consume('string');
