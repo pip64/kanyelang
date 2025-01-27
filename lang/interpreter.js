@@ -1,6 +1,9 @@
 class Interpreter {
     constructor() {
-        this.env = {};
+        this.env = {
+            __functions__: {},
+            __parent__: null
+        };
         this.strict = false;
     }
 
@@ -40,6 +43,7 @@ class Interpreter {
                     this.evalBlock(stmt.body);
                 }
                 break;
+
             case 'IfStatement':
                 const conditionResult = this.evalExpr(stmt.condition);
                 if (this.isTruthy(conditionResult)) {
@@ -48,15 +52,21 @@ class Interpreter {
                     this.evalBlock(stmt.elseBlock);
                 }
                 break;
+
+            case 'FunctionDecl':
+                this.env.__functions__[stmt.name] = {
+                    params: stmt.params,
+                    body: stmt.body,
+                    closure: this.env
+                };
+                break;
+
+            case 'Return':
+                throw { type: 'return', value: this.evalExpr(stmt.value) };
+
             default:
                 throw new Error(`Unknown statement: ${stmt.type}`);
         }
-    }
-
-    isTruthy(value) {
-        if (typeof value === 'number') return value !== 0;
-        if (typeof value === 'string') return value !== '';
-        return !!value;
     }
 
     evalExpr(expr) {
@@ -78,6 +88,37 @@ class Interpreter {
                 const right = this.evalExpr(expr.right);
                 return this.applyOperator(expr.op, left, right);
 
+            case 'CallExpr':
+                const func = this.env.__functions__[expr.name];
+                if (!func) throw new Error(`Undefined function: ${expr.name}`);
+
+                // Создаем новое окружение
+                const localEnv = {
+                    __functions__: this.env.__functions__,
+                    __parent__: this.env
+                };
+
+                // Передаем аргументы
+                for (let i = 0; i < func.params.length; i++) {
+                    localEnv[func.params[i]] = this.evalExpr(expr.args[i]);
+                }
+
+                // Сохраняем предыдущее окружение
+                const prevEnv = this.env;
+                this.env = localEnv;
+
+                // Выполняем тело функции
+                let result = null;
+                try {
+                    this.evalBlock(func.body);
+                } catch (ret) {
+                    if (ret.type === 'return') result = ret.value;
+                }
+
+                // Восстанавливаем окружение
+                this.env = prevEnv;
+                return result;
+
             default:
                 throw new Error(`Unknown expression: ${expr.type}`);
         }
@@ -87,18 +128,23 @@ class Interpreter {
         switch (op) {
             case '+': return left + right;
             case '-': return left - right;
-            case '/': return left / right;
             case '*': return left * right;
+            case '/': return left / right;
             case '^': return left ^ right;
-            case '==': return left == right ? 1 : 0;
-            case '!=': return left != right ? 1 : 0;
             case '>': return left > right ? 1 : 0;
             case '<': return left < right ? 1 : 0;
             case '>=': return left >= right ? 1 : 0;
             case '<=': return left <= right ? 1 : 0;
-            default:
-                throw new Error(`Unsupported operator: ${op}`);
+            case '==': return left == right ? 1 : 0;
+            case '!=': return left != right ? 1 : 0;
+            default: throw new Error(`Unsupported operator: ${op}`);
         }
+    }
+
+    isTruthy(value) {
+        if (typeof value === 'number') return value !== 0;
+        if (typeof value === 'string') return value !== '';
+        return !!value;
     }
 }
 

@@ -40,6 +40,8 @@ class Parser {
             case 'spit': return this.parseSpit();
             case 'repeat': return this.parseRepeat();
             case 'drip': return this.parseIfStatement();
+            case 'flex': return this.parseFunctionDecl();
+            case 'bounce': return this.parseReturn();
             default: throw new Error(`Unexpected statement: ${token.value}`);
         }
     }
@@ -51,24 +53,6 @@ class Parser {
         const value = this.parseExpr();
         this.consume(';');
         return { type: 'VarDecl', name, value };
-    }
-
-    parseIfStatement() {
-        this.consume('keyword', 'drip');
-        this.consume('(');
-        const condition = this.parseExpr();
-        this.consume(')');
-        this.consume('{');
-        const thenBlock = this.parseBlock();
-        this.consume('}');
-        let elseBlock = [];
-        if (this.peek()?.value === 'nah') {
-            this.consume('keyword', 'nah');
-            this.consume('{');
-            elseBlock = this.parseBlock();
-            this.consume('}');
-        }
-        return { type: 'IfStatement', condition, thenBlock, elseBlock };
     }
 
     parseVarChange() {
@@ -97,6 +81,47 @@ class Parser {
         return { type: 'Repeat', count, body };
     }
 
+    parseIfStatement() {
+        this.consume('keyword', 'drip');
+        this.consume('(');
+        const condition = this.parseExpr();
+        this.consume(')');
+        this.consume('{');
+        const thenBlock = this.parseBlock();
+        this.consume('}');
+        let elseBlock = [];
+        if (this.peek()?.value === 'nah') {
+            this.consume('keyword', 'nah');
+            this.consume('{');
+            elseBlock = this.parseBlock();
+            this.consume('}');
+        }
+        return { type: 'IfStatement', condition, thenBlock, elseBlock };
+    }
+
+    parseFunctionDecl() {
+        this.consume('keyword', 'flex');
+        const name = this.consume('identifier').value;
+        this.consume('(');
+        const params = [];
+        while (this.peek().type !== ')') {
+            params.push(this.consume('identifier').value);
+            if (this.peek().type === ',') this.consume(',');
+        }
+        this.consume(')');
+        this.consume('{');
+        const body = this.parseBlock();
+        this.consume('}');
+        return { type: 'FunctionDecl', name, params, body };
+    }
+
+    parseReturn() {
+        this.consume('keyword', 'bounce');
+        const value = this.parseExpr();
+        this.consume(';');
+        return { type: 'Return', value };
+    }
+
     parseExpr() {
         let left = this.parsePrimary();
         while (this.peek()?.type === 'operator') {
@@ -109,6 +134,10 @@ class Parser {
 
     parsePrimary() {
         const token = this.peek();
+        if (token.type === 'identifier' && this.tokens[this.pos + 1]?.type === '(') {
+            return this.parseCallExpr();
+        }
+        
         switch (token.type) {
             case 'string':
                 this.consume('string');
@@ -119,9 +148,26 @@ class Parser {
             case 'identifier':
                 this.consume('identifier');
                 return { type: 'Var', name: token.value };
+            case '(':
+                this.consume('(');
+                const expr = this.parseExpr();
+                this.consume(')');
+                return expr;
             default:
                 throw new Error(`Unexpected primary: ${token.type}`);
         }
+    }
+
+    parseCallExpr() {
+        const name = this.consume('identifier').value;
+        this.consume('(');
+        const args = [];
+        while (this.peek().type !== ')') {
+            args.push(this.parseExpr());
+            if (this.peek().type === ',') this.consume(',');
+        }
+        this.consume(')');
+        return { type: 'CallExpr', name, args };
     }
 }
 
