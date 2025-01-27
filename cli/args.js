@@ -19,20 +19,16 @@ async function updateKanyeLang() {
     console.log('Updating KanyeLang...\n');
     
     try {
-        // Проверка прав администратора
         if (!await checkAdmin()) {
             throw new Error('Please run as administrator to update');
         }
 
-        // Создание директории если её нет
         if (!fs.existsSync(installDir)) {
             fs.mkdirSync(installDir, { recursive: true });
         }
 
-        // Скачивание с индикатором прогресса
         await downloadFileWithProgress(updateUrl, installPath);
         
-        // Проверка размера файла
         const stats = fs.statSync(installPath);
         if (stats.size === 0) {
             throw new Error('Downloaded file is empty');
@@ -66,7 +62,7 @@ function downloadFileWithProgress(url, outputPath) {
         let lastProgress = -1;
 
         file.on('error', error => {
-            fs.unlinkSync(outputPath); // Удаляем файл в случае ошибки
+            fs.unlinkSync(outputPath);
             reject(new Error(`File write error: ${error.message}`));
         });
 
@@ -100,7 +96,7 @@ function downloadFileWithProgress(url, outputPath) {
             });
 
         }).on('error', error => {
-            fs.unlinkSync(outputPath); // Удаляем файл в случае ошибки
+            fs.unlinkSync(outputPath);
             reject(new Error(`Download failed: ${error.message}`));
         });
     });
